@@ -10,23 +10,48 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def env_list(name):
+    return [
+        item.strip()
+        for item in os.environ.get(name, "").split(",")
+        if item.strip()
+    ]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dxvau_sh_f77^=^-^ab^q7kj74knz7i_mx!c$2vaea_o^6$u6e'
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") in {"1", "true", "yes"}
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+
+if DEBUG and not SECRET_KEY:
+    SECRET_KEY = "django-insecure-local-only-key"
+if not DEBUG and not SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY is required in production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
-ALLOWED_HOSTS = []
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+if not DEBUG:
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS is required in production")
+    if not CSRF_TRUSTED_ORIGINS:
+        raise ImproperlyConfigured("DJANGO_CSRF_TRUSTED_ORIGINS is required in production")
+
 
 
 # Application definition
@@ -125,6 +150,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     STORAGES = {
         'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
         'staticfiles': {
