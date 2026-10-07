@@ -1,0 +1,351 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Woodenpiger 作品站</title>
+  <link rel="stylesheet" href="{% static 'market/css/app.css' %}?v=4">
+</head>
+
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#/works">
+        <img class="brand-mark" src="{% static 'market/img/logo.jpg' %}" alt="">
+        <span>Woodenpiger</span>
+      </a>
+
+      <div class="topbar-status">
+        <div class="status-profile">
+          <div class="avatar-frame tiny">
+            <img id="profile-avatar" alt="">
+            <span id="profile-avatar-fallback" aria-hidden="true"></span>
+          </div>
+          <div class="status-identity">
+            <strong id="profile-name">Woodenpiger</strong>
+            <span id="profile-bio">正在整理个人作品与源码。</span>
+            <ul class="tag-list status-skills" id="profile-skills"></ul>
+          </div>
+        </div>
+
+        <div class="topbar-controls">
+          <nav class="main-nav" aria-label="主导航">
+            <a href="#/works" data-nav="works">作品</a>
+            <a class="blog-link" href="https://woodenpiger.xyz/" target="_blank" rel="noopener">WoodenPiger's blog</a>
+          </nav>
+
+          <div class="topbar-actions">
+            <div class="user-chip" id="user-chip" hidden>
+              <span id="current-username"></span>
+              <span class="balance-chip"><span id="current-balance">0</span> piger</span>
+            </div>
+            <button class="glass-button" id="checkin-button" type="button" hidden>签到</button>
+            <button class="glass-button" id="logout-button" type="button" hidden>退出</button>
+            <button class="glass-button" id="auth-button" type="button">登录</button>
+            <button class="glass-button small" id="profile-settings-button" type="button" hidden>资料</button>
+            <a class="glass-button small admin-link" id="admin-link" href="/admin/" hidden>管理</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-panel" id="profile-panel" hidden>
+        <div class="profile-panel-header">
+          <h2>个人资料设置</h2>
+          <button class="glass-button icon-button" id="close-profile-panel" type="button" aria-label="关闭">×</button>
+        </div>
+        <form class="profile-editor" id="profile-form" aria-label="个人资料设置" hidden>
+          <div class="editor-avatar">
+            <div class="avatar-frame small">
+              <img id="editor-avatar-preview" alt="头像预览">
+              <span id="editor-avatar-fallback" aria-hidden="true"></span>
+            </div>
+            <label class="glass-button small">
+              更换头像
+              <input type="file" id="avatar-input" accept="image/*" hidden>
+            </label>
+          </div>
+          <label class="field">
+            <span>名称</span>
+            <input type="text" id="profile-username-input" name="username" maxlength="150" required>
+          </label>
+          <label class="field">
+            <span>一句话介绍</span>
+            <input type="text" id="profile-bio-input" name="bio" maxlength="160" placeholder="一句话介绍或 GitHub 链接">
+          </label>
+          <label class="field">
+            <span>技能标签（逗号分隔）</span>
+            <input type="text" id="profile-skills-input" name="skills" placeholder="Django, Python, Vue">
+          </label>
+          <p class="form-error" id="profile-error" role="alert"></p>
+          <button class="glass-button primary wide" id="profile-save-button" type="submit">保存资料</button>
+        </form>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <main>
+        <section id="works-view" class="view" aria-labelledby="works-title">
+          <section class="status-strip" aria-label="站点状态">
+            <div class="status-metrics" aria-label="站点数据">
+              <div>
+                <strong id="stat-work-count">0</strong>
+                <span>作品</span>
+              </div>
+              <div>
+                <strong id="stat-source-count">0</strong>
+                <span>源码文件</span>
+              </div>
+            </div>
+
+            <div class="status-rules" aria-label="piger 规则">
+              <span><i class="rule-dot amber"></i>注册 +5</span>
+              <span><i class="rule-dot mint"></i>签到 +1</span>
+              <span><i class="rule-dot coral"></i>解锁永久</span>
+            </div>
+          </section>
+
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Work market</p>
+              <h2 id="works-title" class="works-title">作品市场</h2>
+              <p class="page-note">每个作品都包含标签、作者资料和可解锁源码。</p>
+            </div>
+            <div class="result-count" id="result-count" aria-live="polite"></div>
+          </div>
+
+          <form class="filter-panel" id="work-filters" aria-label="作品筛选">
+            <label class="field">
+              <span>搜索</span>
+              <input type="search" id="search-input" name="search" placeholder="标题或简介" autocomplete="off">
+            </label>
+            <label class="field">
+              <span>分类</span>
+              <div class="dropdown-field">
+                <details class="glass-dropdown" id="category-dropdown">
+                  <summary aria-haspopup="listbox">
+                    <span id="category-dropdown-label">全部分类</span>
+                    <i aria-hidden="true"></i>
+                  </summary>
+                  <div class="glass-dropdown-menu" role="listbox" aria-label="分类选项">
+                    <button class="glass-dropdown-option" type="button" role="option" data-value="all"
+                      aria-selected="true">全部分类</button>
+                  </div>
+                </details>
+                <select id="category-select" name="category" hidden>
+                  <option value="all">全部分类</option>
+                </select>
+              </div>
+            </label>
+            <label class="field">
+              <span>标签</span>
+              <input type="search" id="tag-input" name="tag" placeholder="例如 Django" autocomplete="off">
+            </label>
+            <label class="field">
+              <span>排序</span>
+              <div class="dropdown-field">
+                <details class="glass-dropdown" id="ordering-dropdown">
+                  <summary aria-haspopup="listbox">
+                    <span id="ordering-dropdown-label">最新发布</span>
+                    <i aria-hidden="true"></i>
+                  </summary>
+                  <div class="glass-dropdown-menu" role="listbox" aria-label="排序选项">
+                    <button class="glass-dropdown-option" type="button" role="option" data-value="-created_at"
+                      aria-selected="true">最新发布</button>
+                    <button class="glass-dropdown-option" type="button" role="option"
+                      data-value="created_at">最早发布</button>
+                    <button class="glass-dropdown-option" type="button" role="option"
+                      data-value="cost_piger">价格从低到高</button>
+                    <button class="glass-dropdown-option" type="button" role="option"
+                      data-value="-cost_piger">价格从高到低</button>
+                  </div>
+                </details>
+                <input type="hidden" id="ordering-select" name="ordering" value="-created_at">
+              </div>
+            </label>
+            <div class="filter-actions">
+              <button class="glass-button" type="submit">筛选</button>
+              <button class="glass-button ghost" type="reset">重置</button>
+            </div>
+          </form>
+
+          <div class="work-grid" id="work-grid"></div>
+          <div class="list-footer">
+            <button class="glass-button" id="load-more-button" type="button" hidden>加载更多</button>
+          </div>
+        </section>
+
+        <section id="work-detail-view" class="view" hidden aria-labelledby="work-title">
+          <button class="glass-button back-button" id="back-to-works" type="button">返回作品</button>
+
+          <div class="work-detail repository-shell">
+            <header class="work-detail-header repository-header">
+              <div>
+                <p class="eyebrow" id="work-category"></p>
+                <h1 id="work-title"></h1>
+                <p class="work-meta">
+                  <span id="work-author"></span>
+                  <span id="work-created-at"></span>
+                </p>
+              </div>
+              <div class="work-price" id="work-price"></div>
+            </header>
+
+            <div class="repository-tabbar" aria-label="作品内容类型">
+              <span class="repository-tab active">README</span>
+              <span class="repository-file-count" id="work-file-count"></span>
+            </div>
+
+            <div class="work-detail-columns">
+              <section class="detail-panel readme-panel" aria-label="作品说明">
+                <h2>README</h2>
+                <div class="rich-content" id="work-summary"></div>
+                <div class="rich-content locked-content" id="work-content"></div>
+                <div class="work-gallery" id="work-gallery"></div>
+                <div class="source-layout">
+                  <div class="source-tree-panel">
+                    <h3>目录</h3>
+                    <ul class="source-tree" id="source-tree"></ul>
+                  </div>
+                  <div class="source-viewer">
+                    <div class="source-viewer-header">
+                      <span id="source-file-path">选择左侧文件</span>
+                      <a class="glass-button small" id="source-download" href="#" hidden>下载</a>
+                    </div>
+                    <pre><code id="source-file-content"></code></pre>
+                  </div>
+                </div>
+              </section>
+
+              <aside class="detail-panel action-panel" aria-label="作品信息">
+                <h2>About</h2>
+                <div class="work-author-card">
+                  <div class="avatar-frame small">
+                    <img id="work-author-avatar" alt="">
+                    <span id="work-author-fallback" aria-hidden="true"></span>
+                  </div>
+                  <div>
+                    <strong id="work-author-name"></strong>
+                    <p id="work-author-bio"></p>
+                    <ul class="tag-list" id="work-author-skills"></ul>
+                  </div>
+                </div>
+                <div class="about-divider"></div>
+                <h3>Tags</h3>
+                <ul class="tag-list" id="work-tags"></ul>
+                <div class="about-divider"></div>
+                <h3>Updates</h3>
+                <ul class="version-list" id="work-versions"></ul>
+                <div class="about-divider"></div>
+                <a class="glass-button wide" id="download-source-zip" href="#" hidden>下载 ZIP</a>
+                <button class="glass-button primary wide" id="unlock-button" type="button"></button>
+                <p class="unlock-note" id="unlock-note"></p>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="wallet-view" class="view" hidden aria-labelledby="wallet-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Wallet</p>
+              <h1 id="wallet-title">钱包</h1>
+              <p class="page-note">piger 余额与最近流水。</p>
+            </div>
+          </div>
+
+          <div id="wallet-login" class="empty-state" hidden>
+            <p>登录后查看余额和流水。</p>
+            <button class="glass-button primary" id="wallet-login-button" type="button">登录</button>
+          </div>
+
+          <div id="wallet-content" hidden>
+            <div class="wallet-summary glass-panel">
+              <span>当前余额</span>
+              <strong><span id="wallet-balance">0</span> piger</strong>
+            </div>
+            <div class="transaction-list" id="transaction-list"></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="site-sidebar">
+        <div class="widget time-widget glass-panel">
+          <h3>当前时间</h3>
+          <div id="current-time-display" class="time-display">00:00:00</div>
+          <div id="current-date-display" class="date-display">1970年01月01日</div>
+        </div>
+
+        <div class="widget author-widget glass-panel">
+          <h3>关于作者</h3>
+          <div class="author-info">
+            <div class="avatar-frame small">
+              <img id="sidebar-author-avatar" src="{% static 'market/img/logo.jpg' %}" alt="Author Avatar">
+              <span id="sidebar-author-fallback" aria-hidden="true" hidden>W</span>
+            </div>
+            <div class="author-details">
+              <strong id="sidebar-author-name">Woodenpiger</strong>
+              <p id="sidebar-author-bio">
+                热衷于分享代码、教程与生活，这是我GitHub链接 <a href="https://github.com/wood-glitch" target="_blank" rel="noopener" class="neon-link neon-github">wood-glitch</a>，喜欢技术交流欢迎加入我的QQ <a href="http://wpa.qq.com/msgrd?v=3&uin=3615825554&site=qq&menu=yes" target="_blank" rel="noopener" class="neon-link neon-qq">3615825554</a>。</p>
+            </div>
+          </div>
+          <a href="https://woodenpiger.xyz" target="_blank" rel="noopener" class="glass-button wide"
+            style="margin-top: 12px; text-align: center; justify-content: center;">访问博客</a>
+        </div>
+
+        <div class="widget visitor-widget glass-panel">
+          <h3>站点访问量</h3>
+          <div class="visitor-stats">
+            <div class="stat-item">
+              <span class="stat-label">总访问量</span>
+              <strong id="busuanzi_value_site_pv" class="stat-value">...</strong>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">总访客数</span>
+              <strong id="busuanzi_value_site_uv" class="stat-value">...</strong>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      <span>Woodenpiger</span>
+      <span class="footer-line"></span>
+      <span>Personal works and source</span>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop" id="auth-modal" hidden>
+    <div class="modal glass-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="modal-header">
+        <h2 id="auth-title">登录</h2>
+        <button class="glass-button icon-button" id="close-auth-modal" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="segmented" role="tablist" aria-label="认证方式">
+        <button class="segmented-item active" id="login-tab" type="button" role="tab" aria-selected="true">登录</button>
+        <button class="segmented-item" id="register-tab" type="button" role="tab" aria-selected="false">注册</button>
+      </div>
+      <form id="auth-form" autocomplete="on">
+        <label class="field">
+          <span>用户名</span>
+          <input type="text" name="username" autocomplete="username" required>
+        </label>
+        <label class="field">
+          <span>密码</span>
+          <input type="password" name="password" autocomplete="current-password" required minlength="8">
+        </label>
+        <p class="form-error" id="auth-error" role="alert"></p>
+        <button class="glass-button primary wide" id="auth-submit" type="submit">登录</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="{% static 'market/js/app.js' %}?v=2"></script>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</body>
+
+</html>

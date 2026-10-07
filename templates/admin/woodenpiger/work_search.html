@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}作品查询 | Woodenpiger 后台{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="wp-search-panel wp-panel">
+    <div class="wp-panel-header">
+      <h1>作品查询</h1>
+      <a class="wp-add-link" href="{% url 'woodenpiger_admin:market_work_add' %}">发布作品</a>
+    </div>
+
+    <form method="get" action="{% url 'woodenpiger_admin:market_work_search' %}" class="wp-search-form">
+      <label>
+        <span>关键字</span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="标题、简介、详细说明或作者">
+      </label>
+      <label>
+        <span>状态</span>
+        <select name="status">
+          <option value="">全部状态</option>
+          <option value="draft" {% if filters.status == 'draft' %}selected{% endif %}>草稿</option>
+          <option value="published" {% if filters.status == 'published' %}selected{% endif %}>已发布</option>
+          <option value="archived" {% if filters.status == 'archived' %}selected{% endif %}>已归档</option>
+        </select>
+      </label>
+      <label>
+        <span>分类</span>
+        <select name="category">
+          <option value="">全部分类</option>
+          {% for category in categories %}
+          <option value="{{ category.id }}" {% if filters.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>标签</span>
+        <select name="tag">
+          <option value="">全部标签</option>
+          {% for tag in tags %}
+          <option value="{{ tag.id }}" {% if filters.tag == tag.id|stringformat:"s" %}selected{% endif %}>{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="wp-search-actions">
+        <button type="submit" class="default">查询</button>
+        <a class="wp-reset-link" href="{% url 'woodenpiger_admin:market_work_search' %}">重置</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="wp-search-results wp-panel">
+    <div class="wp-panel-header">
+      <h2>查询结果</h2>
+      <span class="wp-result-count">共 {{ result_count }} 个作品</span>
+    </div>
+    {% if works %}
+    <div class="wp-recent-works">
+      <table>
+        <thead>
+          <tr>
+            <th>标题</th>
+            <th>作者</th>
+            <th>分类</th>
+            <th>标签</th>
+            <th>源码文件</th>
+            <th>状态</th>
+            <th>更新时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for work in works %}
+          <tr>
+            <td>
+              <a href="{% url 'woodenpiger_admin:market_work_change' work.id %}">{{ work.title }}</a>
+            </td>
+            <td>{{ work.author.username }}</td>
+            <td>{{ work.category|default:"-" }}</td>
+            <td>
+              {% for tag in work.tags.all %}{{ tag.name }}{% if not forloop.last %}、{% endif %}{% endfor %}
+            </td>
+            <td>{{ work.source_file_count }}</td>
+            <td><span class="wp-badge wp-badge-{{ work.status }}">{{ work.get_status_display }}</span></td>
+            <td>{{ work.updated_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="wp-empty">没有符合条件的作品。</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="wp-dashboard">
+  <section class="wp-panel wp-dashboard-overview">
+    <h2>核心数据</h2>
+    <div class="wp-stat-grid">
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_user_changelist' %}">
+        <strong>{{ wp_stats.total_users }}</strong>
+        <span>用户总数</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_work_changelist' %}">
+        <strong>{{ wp_stats.total_works }}</strong>
+        <span>作品总数</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_work_changelist' %}?status__exact=published">
+        <strong>{{ wp_stats.published_works }}</strong>
+        <span>已发布作品</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_work_changelist' %}?status__exact=draft">
+        <strong>{{ wp_stats.draft_works }}</strong>
+        <span>草稿作品</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_work_search' %}">
+        <strong>{{ wp_stats.source_files }}</strong>
+        <span>源码文件</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_checkin_changelist' %}">
+        <strong>{{ wp_stats.today_checkins }}</strong>
+        <span>今日签到</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_checkin_changelist' %}">
+        <strong>{{ wp_stats.total_checkins }}</strong>
+        <span>累计签到</span>
+      </a>
+      <a class="wp-stat-card" href="{% url 'woodenpiger_admin:market_unlock_changelist' %}">
+        <strong>{{ wp_stats.total_unlocks }}</strong>
+        <span>作品解锁</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="wp-panel wp-recent-works">
+    <div class="wp-panel-header">
+      <h2>最近作品</h2>
+      <div class="wp-panel-actions">
+        <a class="wp-add-link" href="{% url 'woodenpiger_admin:market_work_search' %}">作品查询</a>
+        <a class="wp-add-link" href="{% url 'woodenpiger_admin:market_work_add' %}">发布作品</a>
+      </div>
+    </div>
+    {% if wp_recent_works %}
+    <table>
+      <thead>
+        <tr>
+          <th>标题</th>
+          <th>分类</th>
+          <th>价格</th>
+          <th>状态</th>
+          <th>更新时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for work in wp_recent_works %}
+        <tr>
+          <td>
+            <a href="{% url 'woodenpiger_admin:market_work_change' work.id %}">{{ work.title }}</a>
+          </td>
+          <td>{{ work.category|default:"-" }}</td>
+          <td>{{ work.cost_piger }} piger</td>
+          <td>
+            <span class="wp-badge wp-badge-{{ work.status }}">{{ work.get_status_display }}</span>
+          </td>
+          <td>{{ work.updated_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="wp-empty">还没有作品，先添加一条作品记录。</p>
+    {% endif %}
+  </section>
+</div>
+
+{{ block.super }}
+{% endblock %}

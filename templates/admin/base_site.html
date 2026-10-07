@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Woodenpiger 后台{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'woodenpiger_admin:index' %}">Woodenpiger 作品站管理后台</a></h1>
+{% endblock %}
+
+{% block userlinks %}
+<a class="wp-header-action wp-header-action-primary" href="{% url 'woodenpiger_admin:market_work_add' %}">发布作品</a>
+<a class="wp-header-action" href="{% url 'woodenpiger_admin:market_work_search' %}">作品查询</a>
+{{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/woodenpiger-admin.css' %}?v=2">
+{% endblock %}
+
+{% block dark-mode-vars %}
+<meta name="color-scheme" content="light">
+{% endblock %}
