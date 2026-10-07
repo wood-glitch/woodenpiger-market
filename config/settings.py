@@ -151,8 +151,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # Allow overriding secure cookies via environment variable (useful for raw IP testing without HTTPS)
+    _SECURE_COOKIES = os.environ.get("DJANGO_SECURE_COOKIES", "1") in {"1", "true", "yes"}
+    SESSION_COOKIE_SECURE = _SECURE_COOKIES
+    CSRF_COOKIE_SECURE = _SECURE_COOKIES
     STORAGES = {
         'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
         'staticfiles': {
